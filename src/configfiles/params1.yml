@@ -1,0 +1,9 @@
+pso:
+  swarm_size: 200
+  particle_length: 20
+  inertia: 0.7 
+  acc1: 0.5
+  acc2: 0.5
+  max_iters: 1000
+fitness: 'silhouette'
+dataset: 'diabetes.data'
