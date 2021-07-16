@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial import distance
 from scipy.spatial import distance_matrix
 from sklearn.metrics import silhouette_score
 
@@ -37,6 +38,26 @@ def silhouette(inputs, labels, precomput_dists):
         if len(np.unique(labels)) < 2:
             return -1
         return silhouette_score(precomput_dists, labels, metric='precomputed')
+    return wrapper
+
+
+def xie_beni(inputs, labels):
+    n = inputs.shape[0]  # number of inputs
+    m = inputs.shape[1]  # number of attributes
+
+    def wrapper(particle):
+        d = int(particle.shape[0]/m)  # number of clusters
+        clusters = np.reshape(particle, (d, m))  # fit each cluster in a row
+        distances = distance_matrix(inputs, clusters)
+        # 10**(-100) avoids division by 0
+        distances = np.where(distances != 0, distances, 10**(-100))
+        # Shape of distance matrix:(n x d)
+        u = distances**2 / np.sum(distances**2, axis=1)[:, np.newaxis]
+        u = 1.0 / u
+        u = (u.T / np.sum(u, axis=1)).T
+        num = np.sum(u**2 * distances**2)
+        den = n * min(distance.pdist(clusters))**2
+        return num / den
     return wrapper
 
 
