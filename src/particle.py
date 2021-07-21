@@ -44,8 +44,12 @@ class Particle:
 
     def update_position(self):
         self.position += self.velocity
-        # fitness_value = self.fitnessfunction.eval_array(self.position)
-        # self.set_current_fitness(fitness_value)
+        under_lbound = np.where(self.position < self.lbound)[0]
+        over_ubound = np.where(self.position > self.ubound)[0]
+        self.position[under_lbound] = self.lbound
+        self.position[over_ubound] = self.ubound
+        self.velocity[under_lbound] = 0
+        self.velocity[over_ubound] = 0
 
     def update_best_position(self):
         self.best_position = np.copy(self.position)

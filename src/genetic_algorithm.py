@@ -2,7 +2,6 @@ import random
 import copy
 import numpy as np
 from chromosome import Chromosome
-from fitness_function import FitnessFunction
 
 
 class GeneticAlgorithm:
@@ -125,15 +124,3 @@ class GeneticAlgorithm:
         return '\n'.join([str(chromosome.genes)
                           for chromosome in self.population]) + \
             '\n--------------------------------------------------------'
-
-
-def teste(x):
-    return x[0] * 0.2 + x[1] * 0.9 + x[2] * 0.3 + x[3] * 0.7 + x[4] * 0.7 +\
-           x[5] * 0.8 + x[6] * 0.1 + x[7] * 0.2 + x[8] * 0.9 + x[9] * 0.1
-
-
-if __name__ == '__main__':
-    fitnessfunction = FitnessFunction(teste, maximization=True)
-    ga = GeneticAlgorithm(10, 10, 0.02, 100, fitnessfunction,
-                          possible_genes=[-1, 0, 1])
-    ga.run_ga()

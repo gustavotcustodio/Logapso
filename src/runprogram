@@ -1,0 +1,2 @@
+#!/bin/bash
+python optimization.py -c params1.yml -a pso

@@ -27,7 +27,7 @@ class FitnessFunction:
             return value_list.index(min(value_list))
 
 
-def silhouette(inputs, labels, precomput_dists):
+def silhouette(inputs, precomput_dists):
     n_attrs = inputs.shape[1]
 
     def wrapper(clusters_arr):
@@ -50,7 +50,7 @@ def xie_beni(inputs, labels):
         clusters = np.reshape(particle, (d, m))  # fit each cluster in a row
         distances = distance_matrix(inputs, clusters)
         # 10**(-100) avoids division by 0
-        distances = np.where(distances != 0, distances, 10**(-100))
+        # distances = np.where(distances != 0, distances, 10**(-100))
         # Shape of distance matrix:(n x d)
         u = distances**2 / np.sum(distances**2, axis=1)[:, np.newaxis]
         u = 1.0 / u
@@ -61,9 +61,11 @@ def xie_beni(inputs, labels):
     return wrapper
 
 
-def get_fitness_function(function_name, data=None):
+def get_fitness_function(function_name, features=None, labels=None):
     if function_name == 'silhouette':
-        inputs, labels = data[:, :-1], data[:, -1]
-        precomput_dists = distance_matrix(inputs, inputs)
-        function = silhouette(inputs, labels, precomput_dists)
+        precomput_dists = distance_matrix(features, features)
+        function = silhouette(features, precomput_dists)
         return FitnessFunction(function, maximization=True)
+    else:
+        function = xie_beni(features, labels)
+        return FitnessFunction(function, maximization=False)

@@ -1,9 +1,12 @@
 pso:
-  swarm_size: 200
-  particle_length: 20
+  swarm_size: 50
+  particle_length: 10
   inertia: 0.7 
-  acc1: 0.5
-  acc2: 0.5
-  max_iters: 1000
+  acc1: 1.4
+  acc2: 1.4
+  maxiters: 500
+  lbound: -1
+  ubound: 1
 fitness: 'silhouette'
-dataset: 'diabetes.data'
+dataset: 'wdbc.data'
+n_clusters: 10

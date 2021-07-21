@@ -1,5 +1,12 @@
+# import random
 from pso import Pso
 from fitness_function import FitnessFunction
+
+
+def logapso_ga_func(eval_func, particle):
+    def wrapper(chromosome):
+        return eval_func(particle + chromosome)
+    return wrapper
 
 
 class Logapso(Pso):
@@ -19,36 +26,44 @@ class Logapso(Pso):
         return 0
 
     def run_pso(self):
+        # probability_ga = 0.1  # Probability to run GA t fine-tune solution
+
         for _ in range(self.max_iters):
             for particle in self.particles:
                 particle.update_velocity(self.best_particle.position,
                                          self.inertia, self.acc1, self.acc2)
                 particle.update_position(self.fitnessfunction)
-                particle.update_best_position(self.fitnessfunction)
-                # if random(0,1)<0.1 then
-                #     pnew <- applyGA(pi) // GA is applied 10% of times
-                #     if f(pnew) < f(pi) then
-                #         pi,xi <- pnew
+                particle.set_current_fitness(
+                    self.fitnessfunction.calc_fitness(particle.position))
 
-                # Update the global solution if it is a better candidate
-                self._update_best_particle(particle)
+                # Update the best position found by the particle
+                if self.fitnessfunction.is_fitness_improved(
+                    particle.current_fitness, particle.best_fitness
+                ):
+                    particle.update_best_position()
+                    particle.set_best_fitness(particle.current_fitness)
 
-                # if g was updated then
-                #     gnew <- applyGA(g)// applies the GA on global solution
-                #     if f(gnew)< f(g) then
-                #         g,pbest,xbest <- gnew// if solution improves update
+                    # if random.random(0, 1) < probability_ga:
+                    #     print('aplicou o GA no local')
+                    #     pnew <- applyGA(pi) // GA is applied 10% of times
+                    #     if f(pnew) < f(pi) then
+                    #         pi,xi <- pnew
 
-                print(self.best_particle.best_fitness)
+                    # Update the global solution if it is a better candidate
+                    self._update_best_particle(particle)
+
+            if self.updated_global_solution:
+                print('aplicou o GA no global')
+            #     gnew <- applyGA(g)// applies the GA on global solution
+            #     if f(gnew)< f(g) then
+            #         g,pbest,xbest <- gnew// if solution improves update
+
+            print(self.best_particle.best_fitness)
+            self.updated_global_solution = False
 
 
 def sum_all(arr):
     return sum(arr)
-
-
-def logapso_ga_func(eval_func, particle):
-    def wrapper(chromosome):
-        return eval_func(particle + chromosome)
-    return wrapper
 
 
 if __name__ == '__main__':
