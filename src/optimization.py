@@ -3,8 +3,14 @@ import sys
 import yaml
 import numpy as np
 import getopt
-import fitness_function
+import functions
 from pso import Pso
+from logapso import Logapso
+from genetic_algorithm_logapso import GeneticAlgorithmLogapso
+
+
+PSO = 0
+LOGAPSO = 1
 
 
 def read_config_file(filename):
@@ -17,13 +23,6 @@ def read_config_file(filename):
         sys.exit(2)
 
 
-def read_dataset(dataset):
-    path = os.path.join('datasets', dataset)
-    data = np.genfromtxt(path, delimiter=',')
-    np.random.shuffle(data)
-    return data
-
-
 def scale_feature(feature, scaled_min=0, scaled_max=1):
     max_val = max(feature)
     min_val = min(feature)
@@ -31,45 +30,50 @@ def scale_feature(feature, scaled_min=0, scaled_max=1):
         (max_val - min_val) + scaled_min
 
 
-def run_pso(params):
-    # Getting parameters from config file
-    swarm_size = params['pso']['swarm_size']
-    inertia = params['pso']['inertia']
-    acc1 = params['pso']['acc1']
-    acc2 = params['pso']['acc2']
-    maxiters = params['pso']['maxiters']
-    lbound = params['pso']['lbound']
-    ubound = params['pso']['ubound']
+def read_dataset(dataset):
+    path = os.path.join('datasets', dataset)
+    data = np.genfromtxt(path, delimiter=',')
+    np.random.shuffle(data)
+    for i in range(data.shape[1] - 1):
+        data[:, i] = scale_feature(data[:, i], -1, 1)
+    return data
 
-    # Cluster optimization problem
+
+def run(optimizer, params):
+    # Cluster optimization problem or benchmark function
     if 'dataset' in params:
         data = read_dataset(params['dataset'])
         n_features = data[:, :-1].shape[1]  # number of features
-
-        features = np.array([scale_feature(data[:, i], -1, 1)
-                             for i in range(n_features)]).T
-        labels = data[:, -1]
-
-        fitnessfunction = fitness_function.get_fitness_function(
-            params['fitness'], features, labels)
+        fitnessfunction = functions.get_fitness_function(
+            params['fitness'], data)
         particle_length = n_features * params['n_clusters']
     else:
-        fitnessfunction = fitness_function.get_fitness_function(
-            params['fitness'])
+        fitnessfunction = functions.get_fitness_function(params['fitness'])
         particle_length = params['pso']['particle_length']
 
-    pso = Pso(swarm_size, inertia, acc1, acc2, maxiters, fitnessfunction)
-    pso.generate_particles(particle_length, lbound, ubound)
+    # Select the optimization algorithm
+    if optimizer == 'logapso':
+        chromosome_length = particle_length
+        step_value = 1
+        possible_genes = [-1, 0, 1]
+
+        ga = GeneticAlgorithmLogapso(
+            params['ga']['pop_size'], chromosome_length,
+            params['ga']['mutation_rate'], params['ga']['n_generations'],
+            fitnessfunction, step_value, possible_genes)
+        pso = Logapso(
+            params['pso']['swarm_size'], params['pso']['inertia'],
+            params['pso']['acc1'], params['pso']['acc2'],
+            params['pso']['maxiters'], step_value, fitnessfunction, ga)
+
+    else:  # optimizer = 'pso'
+        pso = Pso(
+            params['pso']['swarm_size'], params['pso']['inertia'],
+            params['pso']['acc1'], params['pso']['acc2'],
+            params['pso']['maxiters'], fitnessfunction)
+    pso.generate_particles(particle_length, params['pso']['lbound'],
+                           params['pso']['ubound'])
     pso.run()
-
-
-def run(algorithm, params):
-    try:
-        if algorithm == 'pso':
-            run_pso(params)
-    except Exception:
-        print('Config file incorrectly formatted.')
-        sys.exit(2)
 
 
 def main(argv):

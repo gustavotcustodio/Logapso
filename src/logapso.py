@@ -1,38 +1,59 @@
-# import random
+import random
+import copy
+import numpy as np
 from pso import Pso
-from fitness_function import FitnessFunction
-
-
-def logapso_ga_func(eval_func, particle):
-    def wrapper(chromosome):
-        return eval_func(particle + chromosome)
-    return wrapper
+import functions
+from functions import FitnessFunction
+from genetic_algorithm_logapso import GeneticAlgorithmLogapso
 
 
 class Logapso(Pso):
 
-    def __init__(self, swarm_size, inertia, acc1, acc2, max_iters, ga_step_val,
+    def __init__(self, swarm_size, inertia, acc1, acc2, maxiters, step_val,
                  fitnessfunction, ga, checkpoint_file=None):
 
-        super().__init__(swarm_size, inertia, acc1, acc2, max_iters,
+        super().__init__(swarm_size, inertia, acc1, acc2, maxiters,
                          fitnessfunction, checkpoint_file)
-        self.ga_step_val = ga_step_val
+        self.step_val = step_val
         self.ga = ga
+        self.updated_global_solution = True
 
-    # step_value
     def apply_ga(self, particle):
-        self.ga.run_ga()
-        # ga.run_ga()
-        return 0
+        self.ga.set_particle(particle)
+        ga_solution = self.ga.run()
 
-    def run_pso(self):
-        # probability_ga = 0.1  # Probability to run GA t fine-tune solution
+        new_position = ga_solution.genes * self.step_val + \
+            particle.best_position
+        new_fitness = ga_solution.fitness_value
 
-        for _ in range(self.max_iters):
+        # Update if the solution is improved after running a GA
+        if self.fitnessfunction.is_fitness_improved(new_fitness,
+                                                    particle.best_fitness):
+            particle.position = new_position
+            particle.current_fitness = new_fitness
+            particle.best_position = new_position
+            particle.best_fitness = new_fitness
+
+            under_lbound = np.where(particle.position < particle.lbound)[0]
+            over_ubound = np.where(particle.position > particle.ubound)[0]
+            particle.position[under_lbound] = particle.lbound
+            particle.position[over_ubound] = particle.ubound
+
+    def update_best_particle(self, particle):
+        old_fitness_value = self.best_particle.best_fitness
+        new_fitness_value = particle.best_fitness
+
+        if self.fitnessfunction.is_fitness_improved(new_fitness_value,
+                                                    old_fitness_value):
+            self.best_particle = copy.deepcopy(particle)
+            self.updated_global_solution = True
+
+    def run(self):
+        for _ in range(self.maxiters):
             for particle in self.particles:
                 particle.update_velocity(self.best_particle.position,
                                          self.inertia, self.acc1, self.acc2)
-                particle.update_position(self.fitnessfunction)
+                particle.update_position()
                 particle.set_current_fitness(
                     self.fitnessfunction.calc_fitness(particle.position))
 
@@ -43,31 +64,44 @@ class Logapso(Pso):
                     particle.update_best_position()
                     particle.set_best_fitness(particle.current_fitness)
 
-                    # if random.random(0, 1) < probability_ga:
-                    #     print('aplicou o GA no local')
-                    #     pnew <- applyGA(pi) // GA is applied 10% of times
-                    #     if f(pnew) < f(pi) then
-                    #         pi,xi <- pnew
+                    if random.random() < 0.1:  # GA is applied 10% of times
+                        # Apply a GA to fine-tune the candidate solution
+                        self.apply_ga(particle)
 
-                    # Update the global solution if it is a better candidate
-                    self._update_best_particle(particle)
+                    # Update the global solution if the found solution is
+                    # a better candidate
+                    self.update_best_particle(particle)
 
-            if self.updated_global_solution:
-                print('aplicou o GA no global')
-            #     gnew <- applyGA(g)// applies the GA on global solution
-            #     if f(gnew)< f(g) then
-            #         g,pbest,xbest <- gnew// if solution improves update
+            if self.updated_global_solution:  # If the global solution updated
+                # Applies the GA on global solution
+                # print('========================================')
+                # print(self.best_particle.best_fitness)
+                self.apply_ga(self.best_particle)
+                # self.updated_global_solution = False
 
-            print(self.best_particle.best_fitness)
-            self.updated_global_solution = False
-
-
-def sum_all(arr):
-    return sum(arr)
+                print(self.best_particle.best_fitness)
+                print('========================================')
 
 
 if __name__ == '__main__':
-    fitnessfunction = FitnessFunction(sum_all, maximization=True)
-    pso_optimizer = Logapso(50, 0.1, 0.2, 0.2, 300, 0.2, fitnessfunction)
-    pso_optimizer.generate_particles(12, lbound=-1, ubound=1)
-    pso_optimizer.run_pso()
+    swarm_size = 50
+    particle_length = 15
+    mutation_rate = 0.02
+    n_generations = 30
+    step_value = 0.2
+    inertia = 0.7
+    acc1 = 1.4
+    acc2 = 1.4
+    maxiters = 300
+
+    function = functions.griewank
+    fitnessfunction = FitnessFunction(function, maximization=False)
+
+    ga = GeneticAlgorithmLogapso(
+        swarm_size, particle_length, mutation_rate, n_generations,
+        fitnessfunction, step_value, possible_genes=[-1, 0, 1]
+    )
+    pso_optimizer = Logapso(swarm_size, inertia, acc1, acc2, maxiters,
+                            step_value, fitnessfunction, ga)
+    pso_optimizer.generate_particles(particle_length, lbound=-1, ubound=1)
+    pso_optimizer.run()

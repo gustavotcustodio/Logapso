@@ -6,29 +6,23 @@ from chromosome import Chromosome
 
 class GeneticAlgorithm:
 
-    def __init__(self, pop_size, chrom_length, mutation_rate, generations,
+    def __init__(self, pop_size, chrom_length, mutation_rate, n_generations,
                  fitnessfunction, possible_genes=[0, 1]):
         self.pop_size = pop_size
         self.chrom_length = chrom_length
         self.mutation_rate = mutation_rate
-        self.generations = generations
+        self.n_generations = n_generations
         self.fitnessfunction = fitnessfunction
-        self.population = self._generate_random_population(possible_genes)
-        self._calc_population_fitness()
+        self.possible_genes = possible_genes
 
-    def _generate_random_population(self, possible_genes):
+    def _generate_random_population(self):
         """
-        Parameters
-        ---------
-        possible_genes: list
-            Possible values or the chromosome genes.
-
         Returns
         -------
         list(Chromosome)
             List containing the GA's population.
         """
-        return [Chromosome(self.chrom_length, possible_values=possible_genes)
+        return [Chromosome(self.chrom_length, self.possible_genes)
                 for _ in range(self.pop_size)]
 
     def _perform_crossover(self, selected_chromosomes):
@@ -59,15 +53,17 @@ class GeneticAlgorithm:
         if max_val == min_val:
             return np.array(range(1, self.pop_size + 1)) / self.pop_size
 
-        fitness_cumsum = np.cumsum(fitness_values - min_val)
+        if self.fitnessfunction.maximization:
+            fitness_cumsum = np.cumsum(fitness_values - min_val)
+
+        if not self.fitnessfunction.maximization:
+            fitness_cumsum = np.cumsum(max_val - fitness_values)
         fitness_cumsum /= max(fitness_cumsum)
 
-        # If the objective is to reduce the fitness value,
-        # calculate '1 - fitness'
-        return fitness_cumsum \
-            if self.fitnessfunction.maximization else 1 - fitness_cumsum
+        return fitness_cumsum  # \
+        # if self.fitnessfunction.maximization else 1 - fitness_cumsum
 
-    def _calc_population_fitness(self):
+    def calc_population_fitness(self):
         for chromosome in self.population:
             fitness_val = self.fitnessfunction.calc_fitness(chromosome.genes)
             chromosome.set_fitness_value(fitness_val)
@@ -95,7 +91,6 @@ class GeneticAlgorithm:
             # Get the index of the first element equal or lower than a random
             # number from 0 to 1.
             index = np.searchsorted(fitness_cumsum, random.random())
-
             selected_chromosomes.append(copy.deepcopy(self.population[index]))
         return selected_chromosomes
 
@@ -109,16 +104,20 @@ class GeneticAlgorithm:
             selected_genes = np.where(prob_mutations <= self.mutation_rate)[0]
             chromosome.mutate_chromosome(selected_genes)
 
-    def run_ga(self):
-        for _ in range(self.generations):
+    def run(self):
+        self.population = self._generate_random_population()
+        self.calc_population_fitness()
+
+        for _ in range(self.n_generations):
             n_to_select = int(self.pop_size / 2)
             selected_chromosomes = self._do_roulette_selection(n_to_select)
             self.population = self._perform_crossover(selected_chromosomes)
             self._perform_mutation()
-            self._calc_population_fitness()
+            self.calc_population_fitness()
             fitness_vals = [chromosome.fitness_value
                             for chromosome in self.population]
-            print(max(fitness_vals))
+            index_best = self.fitnessfunction.get_index_best(fitness_vals)
+        return self.population[index_best]
 
     def __str__(self):
         return '\n'.join([str(chromosome.genes)

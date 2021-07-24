@@ -1,12 +1,15 @@
 pso:
-  swarm_size: 50
-  particle_length: 10
-  inertia: 0.7 
-  acc1: 1.4
-  acc2: 1.4
+  swarm_size: 200
+  inertia: 0.729   
+  acc1: 1.49445
+  acc2: 1.49445
   maxiters: 500
-  lbound: -1
-  ubound: 1
-fitness: 'silhouette'
+  lbound: -1.0
+  ubound: 1.0
+ga:
+  pop_size: 50
+  mutation_rate: 0.02
+  n_generations: 20
+fitness: 'xie_beni'
 dataset: 'wdbc.data'
 n_clusters: 10

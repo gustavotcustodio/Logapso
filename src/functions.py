@@ -1,7 +1,9 @@
+import math
 import numpy as np
 from scipy.spatial import distance
 from scipy.spatial import distance_matrix
 from sklearn.metrics import silhouette_score
+import functions
 
 
 class FitnessFunction:
@@ -26,6 +28,9 @@ class FitnessFunction:
         else:
             return value_list.index(min(value_list))
 
+    def update_function(self, function):
+        self.function = function
+
 
 def silhouette(inputs, precomput_dists):
     n_attrs = inputs.shape[1]
@@ -49,8 +54,6 @@ def xie_beni(inputs, labels):
         d = int(particle.shape[0]/m)  # number of clusters
         clusters = np.reshape(particle, (d, m))  # fit each cluster in a row
         distances = distance_matrix(inputs, clusters)
-        # 10**(-100) avoids division by 0
-        # distances = np.where(distances != 0, distances, 10**(-100))
         # Shape of distance matrix:(n x d)
         u = distances**2 / np.sum(distances**2, axis=1)[:, np.newaxis]
         u = 1.0 / u
@@ -61,11 +64,48 @@ def xie_beni(inputs, labels):
     return wrapper
 
 
-def get_fitness_function(function_name, features=None, labels=None):
-    if function_name == 'silhouette':
-        precomput_dists = distance_matrix(features, features)
-        function = silhouette(features, precomput_dists)
-        return FitnessFunction(function, maximization=True)
-    else:
-        function = xie_beni(features, labels)
-        return FitnessFunction(function, maximization=False)
+def square_sum(x):
+    # -100 to 100
+    return sum(np.square(x))
+
+
+def griewank(x):
+    # -600 to 600
+    term1 = 1/4000 * sum(np.square(x - 100))
+    term2 = np.prod(np.cos((x - 100) / np.sqrt(range(1, len(x)+1))))
+    return term1 - term2 + 1
+
+
+def ackley(x):
+    # -32 to 32
+    n = len(x)
+    term1 = -20 * math.exp(-0.2 * np.sqrt(sum(x**2)/n))
+    term2 = -math.exp(sum(np.cos(2*math.pi*x))/n)
+    return term1 + term2 + 20 + math.e
+
+
+def schwefel_226(x):
+    # -500 to 500
+    absx = np.abs(x)
+    const = 418.982887272433799807913601398
+    return const*len(x) - sum(x*np.sin(np.sqrt(absx)))
+
+
+def get_fitness_function(function_name, data=None):
+    if data is not None:
+        features, labels = data[:, :-1], data[:, -1]
+
+        if function_name == 'silhouette':
+            precomput_dists = distance_matrix(features, features)
+            function = silhouette(features, precomput_dists)
+            return FitnessFunction(function, maximization=True)
+
+        elif function_name == 'xie_beni':
+            function = xie_beni(features, labels)
+            return FitnessFunction(function, maximization=False)
+
+    elif function_name == 'griewank':
+        return FitnessFunction(functions.griewank, maximization=False)
+
+    elif function_name == 'square_sum':
+        return FitnessFunction(functions.square_sum, maximization=False)

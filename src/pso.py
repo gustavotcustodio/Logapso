@@ -1,3 +1,5 @@
+import functions
+import copy
 from particle import Particle
 
 
@@ -62,7 +64,7 @@ class Pso:
         index_best = self.fitnessfunction.get_index_best(fitness_values)
         return self.particles[index_best]
 
-    def _update_best_particle(self, particle):
+    def update_best_particle(self, particle):
         """ Check if new particle is a better solution than the current one.
 
         Parameters
@@ -73,9 +75,9 @@ class Pso:
         old_fitness_value = self.best_particle.best_fitness
         new_fitness_value = particle.best_fitness
 
-        if self.fitnessfunction.is_fitness_improved(
-                new_fitness_value, old_fitness_value):
-            self.best_particle = particle
+        if self.fitnessfunction.is_fitness_improved(new_fitness_value,
+                                                    old_fitness_value):
+            self.best_particle = copy.deepcopy(particle)
 
     def run(self):
         for _ in range(self.maxiters):
@@ -97,8 +99,23 @@ class Pso:
                     particle.set_best_fitness(particle.current_fitness)
 
                     # Update the global solution if it is a better candidate
-                    self._update_best_particle(particle)
-
-            print('============================================')
-            # print(self.best_particle.best_position)
+                    self.update_best_particle(particle)
             print(self.best_particle.best_fitness)
+            print('============================================')
+
+
+if __name__ == '__main__':
+    swarm_size = 500
+    particle_length = 100
+    inertia = 0.729
+    acc1 = 1.49445
+    acc2 = 1.49445
+    lbound = -100.0
+    ubound = 100.0
+    maxiters = 1000
+
+    fitnessfunction = functions.get_fitness_function('square_sum')
+    pso_optimizer = Pso(swarm_size, inertia, acc1, acc2, maxiters,
+                        fitnessfunction)
+    pso_optimizer.generate_particles(particle_length, lbound, ubound)
+    pso_optimizer.run()

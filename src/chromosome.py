@@ -3,16 +3,13 @@ import numpy as np
 
 
 class Chromosome:
-    def __init__(self, chrom_length, possible_values=[0, 1], genes=None):
+    def __init__(self, chrom_length, possible_genes=[0, 1]):
         self.chrom_length = chrom_length
-        self.possible_values = possible_values
-        if genes is None:
-            self.genes = self._generate_chromosome()
-        else:
-            self.genes = genes
+        self.possible_genes = possible_genes
+        self.genes = self._generate_chromosome()
 
     def _generate_chromosome(self):
-        return np.array([random.choice(self.possible_values)
+        return np.array([random.choice(self.possible_genes)
                          for _ in range(self.chrom_length)])
 
     def do_single_point_crossover(self, chromosome):
@@ -27,8 +24,8 @@ class Chromosome:
         if indexes.size > 0:
             mutated_genes = self.genes[indexes]
 
-            for val_to_change in self.possible_values:
-                new_values = self.possible_values.copy()
+            for val_to_change in self.possible_genes:
+                new_values = self.possible_genes.copy()
                 new_values.remove(val_to_change)
 
                 indexes_to_change = np.where(
@@ -43,14 +40,14 @@ class Chromosome:
 
 
 if __name__ == '__main__':
-    possible_values = [0, 1]
+    possible_genes = [0, 1]
     genes = np.array([0, 1, 1, 0, 0, 1, 0, 0, 1, 1])
     indexes = [0, 2, 4, 6, 8]
     mutated_genes = genes[indexes]
     print(genes)
 
-    for val_to_change in possible_values:
-        new_values = possible_values.copy()
+    for val_to_change in possible_genes:
+        new_values = possible_genes.copy()
         new_values.remove(val_to_change)
 
         indexes_to_change = np.where(genes[indexes] == val_to_change)[0]
