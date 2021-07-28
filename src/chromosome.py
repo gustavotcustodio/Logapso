@@ -35,9 +35,6 @@ class Chromosome:
 
             self.genes[indexes] = mutated_genes
 
-    def set_fitness_value(self, fitness_value):
-        self.fitness_value = fitness_value
-
 
 if __name__ == '__main__':
     possible_genes = [0, 1]

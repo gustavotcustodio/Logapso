@@ -22,7 +22,4 @@ class GeneticAlgorithmLogapso(GeneticAlgorithm):
             new_position[over_ubound] = self.particle.ubound
 
             fitness_val = self.fitnessfunction.calc_fitness(new_position)
-            chromosome.set_fitness_value(fitness_val)
-
-    def set_particle(self, particle):
-        self.particle = particle
+            chromosome.fitness_value = fitness_val

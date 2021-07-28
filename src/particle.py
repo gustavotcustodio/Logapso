@@ -44,12 +44,3 @@ class Particle:
         self.position[over_ubound] = self.ubound
         self.velocity[under_lbound] = 0.0
         self.velocity[over_ubound] = 0.0
-
-    def update_best_position(self):
-        self.best_position = np.copy(self.position)
-
-    def set_current_fitness(self, current_fitness):
-        self.current_fitness = current_fitness
-
-    def set_best_fitness(self, best_fitness):
-        self.best_fitness = best_fitness

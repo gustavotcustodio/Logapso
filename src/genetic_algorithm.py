@@ -59,14 +59,12 @@ class GeneticAlgorithm:
         if not self.fitnessfunction.maximization:
             fitness_cumsum = np.cumsum(max_val - fitness_values)
         fitness_cumsum /= max(fitness_cumsum)
-
-        return fitness_cumsum  # \
-        # if self.fitnessfunction.maximization else 1 - fitness_cumsum
+        return fitness_cumsum
 
     def calc_population_fitness(self):
         for chromosome in self.population:
-            fitness_val = self.fitnessfunction.calc_fitness(chromosome.genes)
-            chromosome.set_fitness_value(fitness_val)
+            fitness_value = self.fitnessfunction.calc_fitness(chromosome.genes)
+            chromosome.fitness_value = fitness_value
 
     def _do_roulette_selection(self, n_to_select):
         """

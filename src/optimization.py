@@ -9,10 +9,6 @@ from logapso import Logapso
 from genetic_algorithm_logapso import GeneticAlgorithmLogapso
 
 
-PSO = 0
-LOGAPSO = 1
-
-
 def read_config_file(filename):
     try:
         with open(os.path.join('configfiles', filename), 'r') as stream:
@@ -39,7 +35,7 @@ def read_dataset(dataset):
     return data
 
 
-def run(optimizer, params):
+def run(optimizer, params, start_from_checkpoint=False):
     # Cluster optimization problem or benchmark function
     if 'dataset' in params:
         data = read_dataset(params['dataset'])
@@ -71,18 +67,23 @@ def run(optimizer, params):
             params['pso']['swarm_size'], params['pso']['inertia'],
             params['pso']['acc1'], params['pso']['acc2'],
             params['pso']['maxiters'], fitnessfunction)
-    pso.generate_particles(particle_length, params['pso']['lbound'],
-                           params['pso']['ubound'])
+
+    if start_from_checkpoint:
+        pso.load_checkpoint()
+    else:
+        pso.generate_particles(particle_length, params['pso']['lbound'],
+                               params['pso']['ubound'])
     pso.run()
 
 
 def main(argv):
     configfile = None
     algorithm = None
+    start_from_checkpoint = False
 
     try:
-        opts, args = getopt.getopt(
-            argv, "hc:a:", ["configfile=", "algorithm="])
+        opts, _ = getopt.getopt(argv, "hc:a:C", [
+            "configfile=", "algorithm=", "checkpoint"])
 
     except getopt.GetoptError:
         # Print debug info
@@ -94,13 +95,15 @@ def main(argv):
             configfile = argument
         elif option in ('-a', '--algorithm'):
             algorithm = argument
+        elif option in ('-C', '--checkpoint'):
+            start_from_checkpoint = True
 
     parameters = read_config_file(configfile)
 
     if configfile is None or algorithm is None:
         print('Invalid arguments.')
     else:
-        run(algorithm, parameters)
+        run(algorithm, parameters, start_from_checkpoint)
 
 
 if __name__ == '__main__':

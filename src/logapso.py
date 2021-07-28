@@ -10,16 +10,16 @@ from genetic_algorithm_logapso import GeneticAlgorithmLogapso
 class Logapso(Pso):
 
     def __init__(self, swarm_size, inertia, acc1, acc2, maxiters, step_val,
-                 fitnessfunction, ga, checkpoint_file=None):
+                 fitnessfunction, ga):
 
         super().__init__(swarm_size, inertia, acc1, acc2, maxiters,
-                         fitnessfunction, checkpoint_file)
+                         fitnessfunction)
         self.step_val = step_val
         self.ga = ga
         self.updated_global_solution = True
 
     def apply_ga(self, particle):
-        self.ga.set_particle(particle)
+        self.ga.particle = particle
         ga_solution = self.ga.run()
 
         new_position = ga_solution.genes * self.step_val + \
@@ -49,20 +49,20 @@ class Logapso(Pso):
             self.updated_global_solution = True
 
     def run(self):
-        for _ in range(self.maxiters):
+        for i in range(self.first_iter, self.maxiters):
             for particle in self.particles:
                 particle.update_velocity(self.best_particle.position,
                                          self.inertia, self.acc1, self.acc2)
                 particle.update_position()
-                particle.set_current_fitness(
-                    self.fitnessfunction.calc_fitness(particle.position))
+                particle.current_fitness = self.fitnessfunction.calc_fitness(
+                    particle.position)
 
                 # Update the best position found by the particle
                 if self.fitnessfunction.is_fitness_improved(
                     particle.current_fitness, particle.best_fitness
                 ):
-                    particle.update_best_position()
-                    particle.set_best_fitness(particle.current_fitness)
+                    particle.best_position = np.copy(particle.position)
+                    particle.best_fitness = particle.current_fitness
 
                     if random.random() < 0.1:  # GA is applied 10% of times
                         # Apply a GA to fine-tune the candidate solution
@@ -74,13 +74,14 @@ class Logapso(Pso):
 
             if self.updated_global_solution:  # If the global solution updated
                 # Applies the GA on global solution
-                # print('========================================')
-                # print(self.best_particle.best_fitness)
                 self.apply_ga(self.best_particle)
-                # self.updated_global_solution = False
+                self.updated_global_solution = False
 
-                print(self.best_particle.best_fitness)
-                print('========================================')
+            self.save_checkpoint(i)
+            print('Iteration %d' % i)
+            print(40 * '=')
+            print('Best position: %s' % self.best_particle.best_position)
+            print('Best fitness: %f\n' % self.best_particle.best_fitness)
 
 
 if __name__ == '__main__':

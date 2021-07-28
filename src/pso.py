@@ -1,6 +1,11 @@
-import functions
+import numpy as np
+import json
 import copy
+import functions
 from particle import Particle
+
+
+CHECKPOINT_FILE = 'checkpoint.json'
 
 
 class Pso:
@@ -21,13 +26,7 @@ class Pso:
     """
 
     def __init__(self, swarm_size, inertia, acc1, acc2, maxiters,
-                 fitnessfunction, checkpoint_file=None):
-        """
-        Parameters
-        ----------
-        checkpoint_file: string, optional
-            File containing a checkpoint to the experiments.
-        """
+                 fitnessfunction):
         self.swarm_size = swarm_size
         self.maxiters = maxiters
 
@@ -37,20 +36,56 @@ class Pso:
 
         # Fitness function
         self.fitnessfunction = fitnessfunction
-        self.checkpoint_file = checkpoint_file
-
         self.particles = []
+        self.first_iter = 0
 
     def generate_particles(self, particle_length, lbound, ubound):
+
         for _ in range(self.swarm_size):
             particle = Particle(particle_length, lbound, ubound)
             fitness_val = self.fitnessfunction.calc_fitness(particle.position)
 
-            particle.set_current_fitness(fitness_val)
-            particle.set_best_fitness(fitness_val)
+            particle.current_fitness = fitness_val
+            particle.best_fitness = fitness_val
             self.particles.append(particle)
 
         self.best_particle = self._find_best_particle()
+
+    def load_checkpoint(self):
+        """ Continue from a previous stopped experiment.
+        """
+        with open(CHECKPOINT_FILE, 'r') as json_file:
+            data = json.load(json_file)
+            lbound = data['lbound']
+            ubound = data['ubound']
+            particle_length = self.load_ndarray(data['best']['position']
+                                                ).shape[0]
+            for i in range(self.swarm_size):
+                i = str(i)
+                particle = Particle(particle_length, lbound, ubound)
+                particle.position = self.load_ndarray(data[i]['position'])
+                particle.current_fitness = data[i]['fitness']
+                particle.best_position = self.load_ndarray(
+                                            data[i]['best_position'])
+                particle.best_fitness = data[i]['best_fitness']
+                particle.velocity = self.load_ndarray(data[i]['velocity'])
+                self.particles.append(particle)
+
+            self.best_particle = Particle(particle_length, lbound, ubound)
+            self.best_particle.position = self.load_ndarray(
+                                            data['best']['position'])
+            self.best_particle.current_fitness = data['best']['fitness']
+            self.best_particle.best_position = self.load_ndarray(
+                                                data['best']['position'])
+            self.best_particle.best_fitness = data['best']['fitness']
+            self.best_particle.velocity = self.load_ndarray(
+                                            data['best']['velocity'])
+            self.best_particle.lbound = data['lbound']
+            self.best_particle.ubound = data['ubound']
+            self.first_iter = data['iteration']
+
+    def load_ndarray(self, data):
+        return np.fromstring(data[1:-1].replace('\n', ''), sep=' ')
 
     def _find_best_particle(self):
         """
@@ -80,7 +115,7 @@ class Pso:
             self.best_particle = copy.deepcopy(particle)
 
     def run(self):
-        for _ in range(self.maxiters):
+        for i in range(self.first_iter, self.maxiters):
             for particle in self.particles:
                 particle.update_velocity(self.best_particle.position,
                                          self.inertia, self.acc1, self.acc2)
@@ -88,20 +123,48 @@ class Pso:
                 # Update the particles's current position and calculate the new
                 # fitness value
                 particle.update_position()
-                particle.set_current_fitness(
-                    self.fitnessfunction.calc_fitness(particle.position))
+                particle.current_fitness = self.fitnessfunction.calc_fitness(
+                    particle.position)
 
                 # Update the best position found by the particle
                 if self.fitnessfunction.is_fitness_improved(
                     particle.current_fitness, particle.best_fitness
                 ):
-                    particle.update_best_position()
-                    particle.set_best_fitness(particle.current_fitness)
+                    particle.best_position = np.copy(particle.position)
+                    particle.best_fitness = particle.current_fitness
 
                     # Update the global solution if it is a better candidate
                     self.update_best_particle(particle)
-            print(self.best_particle.best_fitness)
-            print('============================================')
+
+            self.save_checkpoint(i)
+            print('Iteration %d' % i)
+            print(40 * '=')
+            print('Best position: %s' % self.best_particle.best_position)
+            print('Best fitness: %f\n' % self.best_particle.best_fitness)
+
+    def save_checkpoint(self, current_iteration):
+        checkpoint = {}
+        for i in range(len(self.particles)):
+            checkpoint[i] = {}
+            checkpoint[i]['position'] = str(self.particles[i].position)
+            checkpoint[i]['fitness'] = self.particles[i].current_fitness
+            checkpoint[i]['best_position'
+                          ] = str(self.particles[i].best_position)
+            checkpoint[i]['best_fitness'] = self.particles[i].best_fitness
+            checkpoint[i]['velocity'] = str(self.particles[i].velocity)
+        checkpoint['best'] = {}
+        checkpoint['best']['position'] = str(self.best_particle.best_position)
+        checkpoint['best']['fitness'] = self.best_particle.best_fitness
+        checkpoint['best']['velocity'] = str(self.best_particle.velocity)
+        checkpoint['lbound'] = self.best_particle.lbound
+        checkpoint['ubound'] = self.best_particle.ubound
+        checkpoint['iteration'] = current_iteration + 1
+
+        self.save_json(CHECKPOINT_FILE, checkpoint)
+
+    def save_json(self, filename, data):
+        with open(filename, 'w') as json_file:
+            json.dump(data, json_file, ensure_ascii=False, indent=4)
 
 
 if __name__ == '__main__':
