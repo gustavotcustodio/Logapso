@@ -1,14 +1,18 @@
 import numpy as np
-from genetic_algorithm import GeneticAlgorithm
+from src.genetic_algorithm import GeneticAlgorithm
 
 
 class GeneticAlgorithmLogapso(GeneticAlgorithm):
 
-    def __init__(self, pop_size, chrom_length, mutation_rate, n_generations,
-                 fitnessfunction, step_value, possible_genes=[0, 1]):
-
-        super().__init__(pop_size, chrom_length, mutation_rate,
-                         n_generations, fitnessfunction, possible_genes)
+    def __init__(
+        self, pop_size, chrom_length, mutation_rate, n_generations,
+        fitnessfunction, step_value, operation_type='bitstring',
+        possible_genes=[0, 1]
+    ):
+        super().__init__(
+            pop_size, chrom_length, mutation_rate, n_generations,
+            fitnessfunction, operation_type, possible_genes
+        )
         self.step_value = step_value
 
     def calc_population_fitness(self):

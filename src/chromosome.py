@@ -12,28 +12,47 @@ class Chromosome:
         return np.array([random.choice(self.possible_genes)
                          for _ in range(self.chrom_length)])
 
-    def do_single_point_crossover(self, chromosome):
+    def _single_point_crossover(self, chromosome):
+        crossover_point = random.randint(1, self.chrom_length-1)
+
+        tmp = self.genes[:crossover_point]
+        self.genes[:crossover_point] = chromosome.genes[:crossover_point]
+        chromosome.genes[:crossover_point] = tmp
+
+    def _uniform_crossover(self, chromosome):
+        r = random.random()
+        self.genes = r * self.genes + (1 - r) * chromosome.genes
+
+    def crossover(self, chromosome, operation_type='bitstring'):
         if self.chrom_length > 1:
-            crossover_point = random.randint(1, self.chrom_length-1)
+            if operation_type == 'bitstring':
+                self._single_point_crossover(chromosome)
+            else:
+                self._uniform_crossover(chromosome)
 
-            tmp = self.genes[:crossover_point]
-            self.genes[:crossover_point] = chromosome.genes[:crossover_point]
-            chromosome.genes[:crossover_point] = tmp
+    def _normal_mutation(self, genes):
+        # random normal distribution number
+        r = random.gauss(mu=0, sigma=1)
+        return genes + r
 
-    def mutate_chromosome(self, indexes):
-        if indexes.size > 0:
-            mutated_genes = self.genes[indexes]
+    def _bit_string_mutation(self, genes):
+        for val_to_change in self.possible_genes:
+            new_values = self.possible_genes.copy()
+            new_values.remove(val_to_change)
 
-            for val_to_change in self.possible_genes:
-                new_values = self.possible_genes.copy()
-                new_values.remove(val_to_change)
+            indexes_to_change = np.where(genes == val_to_change)[0]
+            genes[indexes_to_change] = np.random.choice(
+                new_values, size=len(indexes_to_change))
+        return genes
 
-                indexes_to_change = np.where(
-                    self.genes[indexes] == val_to_change)[0]
-                mutated_genes[indexes_to_change] = np.random.choice(
-                    new_values, size=len(indexes_to_change))
+    def mutate(self, indexes, operation_type='bitstring'):
+        if indexes.shape[0] > 0:
+            if operation_type == 'bitstring':
+                genes = self._bit_string_mutation(self.genes[indexes])
+                self.genes[indexes] = genes
+            else:
+                self.genes = self._normal_mutation(self.genes[:])
 
-            self.genes[indexes] = mutated_genes
 
 
 if __name__ == '__main__':

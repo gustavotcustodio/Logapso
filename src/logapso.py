@@ -1,10 +1,11 @@
 import random
 import copy
 import numpy as np
-from pso import Pso
-import functions
-from functions import FitnessFunction
-from genetic_algorithm_logapso import GeneticAlgorithmLogapso
+from src.pso import Pso
+from src.genetic_algorithm_logapso import GeneticAlgorithmLogapso
+from src.functions import FitnessFunction
+import src.checkpointmanager as chkpoint
+import src.functions as functions
 
 
 class Logapso(Pso):
@@ -48,7 +49,7 @@ class Logapso(Pso):
             self.best_particle = copy.deepcopy(particle)
             self.updated_global_solution = True
 
-    def run(self):
+    def run(self, checkpoint_file: str):
         for i in range(self.first_iter, self.maxiters):
             for particle in self.particles:
                 particle.update_velocity(self.best_particle.position,
@@ -77,7 +78,8 @@ class Logapso(Pso):
                 self.apply_ga(self.best_particle)
                 self.updated_global_solution = False
 
-            self.save_checkpoint(i)
+            chkpoint.save_checkpoint(self.particles, self.best_particle,
+                                     i, checkpoint_file)
             print('Iteration %d' % i)
             print(40 * '=')
             print('Best position: %s' % self.best_particle.best_position)
@@ -86,23 +88,25 @@ class Logapso(Pso):
 
 if __name__ == '__main__':
     swarm_size = 50
-    particle_length = 15
+    particle_length = 50
     mutation_rate = 0.02
     n_generations = 30
     step_value = 0.2
     inertia = 0.7
     acc1 = 1.4
     acc2 = 1.4
+    lbound = -100.0
+    ubound = 100.0
     maxiters = 300
 
-    function = functions.griewank
-    fitnessfunction = FitnessFunction(function, maximization=False)
+    fitnessfunction = functions.get_fitness_function('square_sum')
 
     ga = GeneticAlgorithmLogapso(
         swarm_size, particle_length, mutation_rate, n_generations,
-        fitnessfunction, step_value, possible_genes=[-1, 0, 1]
+        fitnessfunction, step_value, operation_type='bitstring',
+        possible_genes=[-1, 0, 1]
     )
     pso_optimizer = Logapso(swarm_size, inertia, acc1, acc2, maxiters,
                             step_value, fitnessfunction, ga)
-    pso_optimizer.generate_particles(particle_length, lbound=-1, ubound=1)
+    pso_optimizer.generate_particles(particle_length, lbound, ubound)
     pso_optimizer.run()

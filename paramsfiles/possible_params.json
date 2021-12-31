@@ -1,0 +1,41 @@
+{
+  "dataset_nlabels": [
+    { "dataset": "wdbc.data", "nlabels": 2 },
+    { "dataset": "iris.data", "nlabels": 3 },
+    { "dataset": "ionosphere.data", "nlabels": 2 },
+    { "dataset": "wine.data", "nlabels": 3 },
+    { "dataset": "diabetes.data", "nlabels": 2 }
+  ],
+  "cluster_evals": [
+    { "lbound": -1, "fitness": "silhouette", "ubound": 1 },
+    { "lbound": -1, "fitness": "xie_beni", "ubound": 1 },
+    { "lbound": -1, "fitness": "fuku_sugeno", "ubound": 1 }
+  ],
+  "benchmark": [
+    { "lbound": -100, "fitness": "square_sum", "ubound": 100 },
+    { "lbound": -100, "fitness": "rosenbrock", "ubound": 100 },
+    { "lbound": -10, "fitness": "schwefel_222", "ubound": 10 },
+    { "lbound": -1.28, "fitness": "quartic_noise", "ubound": 1.28 },
+    { "lbound": -100, "fitness": "rastrigin", "ubound": 100 },
+    { "lbound": -600, "fitness": "griewank", "ubound": 600 },
+    { "lbound": -32, "fitness": "ackley", "ubound": 32 },
+    { "lbound": -500, "fitness": "schwefel_226", "ubound": 500 },
+    { "lbound": -50, "fitness": "penalty_1", "ubound": 50 },
+    { "lbound": -50, "fitness": "penalty_2", "ubound": 50 }
+  ],
+  "particle_length": [ 50, 100, 200 ],
+  "ga": {
+    "mutation_rate": [ 0.02 ],
+    "n_generations": [ 15 ],
+    "pop_size": [ 10 ]
+  },
+  "pso": {
+    "maxiters": [ 500 ],
+    "pso_constants": [
+      { "acc1": 1.49618, "acc2": 1.49618, "inertia": 0.7298 },
+      { "acc1": 1.49618, "acc2": 1, "inertia": 0.7298 },
+      { "acc1": 1, "acc2": 1.49618, "inertia": 0.55 }
+    ],
+    "swarm_size": [ 100 ]
+  }
+}

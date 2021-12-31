@@ -1,0 +1,15 @@
+dataset: wdbc.data
+fitness: xie_beni
+ga:
+  mutation_rate: 0.02
+  n_generations: 15
+  pop_size: 10
+n_clusters: 2
+pso:
+  acc1: 1
+  acc2: 1.49618
+  inertia: 0.55
+  lbound: -1
+  maxiters: 500
+  swarm_size: 100
+  ubound: 1

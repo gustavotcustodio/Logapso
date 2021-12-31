@@ -1,0 +1,14 @@
+fitness: schwefel_226
+ga:
+  mutation_rate: 0.02
+  n_generations: 15
+  pop_size: 10
+pso:
+  acc1: 1.49618
+  acc2: 1
+  inertia: 0.7298
+  lbound: -500
+  maxiters: 500
+  particle_length: 200
+  swarm_size: 100
+  ubound: 500

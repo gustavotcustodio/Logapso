@@ -3,7 +3,6 @@ import numpy as np
 from scipy.spatial import distance
 from scipy.spatial import distance_matrix
 from sklearn.metrics import silhouette_score
-import functions
 
 
 class FitnessFunction:
@@ -59,7 +58,9 @@ def xie_beni(inputs, labels):
         u = 1.0 / u
         u = (u.T / np.sum(u, axis=1)).T
         num = np.sum(u**2 * distances**2)
+        # print(clusters)
         den = n * min(distance.pdist(clusters))**2
+        # print(den)
         return num / den
     return wrapper
 
@@ -105,7 +106,7 @@ def get_fitness_function(function_name, data=None):
             return FitnessFunction(function, maximization=False)
 
     elif function_name == 'griewank':
-        return FitnessFunction(functions.griewank, maximization=False)
+        return FitnessFunction(griewank, maximization=False)
 
     elif function_name == 'square_sum':
-        return FitnessFunction(functions.square_sum, maximization=False)
+        return FitnessFunction(square_sum, maximization=False)

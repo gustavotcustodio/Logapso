@@ -1,18 +1,22 @@
 import random
 import copy
 import numpy as np
-from chromosome import Chromosome
+from src.chromosome import Chromosome
 
 
 class GeneticAlgorithm:
 
-    def __init__(self, pop_size, chrom_length, mutation_rate, n_generations,
-                 fitnessfunction, possible_genes=[0, 1]):
+    def __init__(
+        self, pop_size, chrom_length, mutation_rate, n_generations,
+        fitnessfunction, operation_type='bitstring', possible_genes=[0, 1]
+    ):
         self.pop_size = pop_size
         self.chrom_length = chrom_length
         self.mutation_rate = mutation_rate
         self.n_generations = n_generations
         self.fitnessfunction = fitnessfunction
+
+        self.operation_type = operation_type
         self.possible_genes = possible_genes
 
     def _generate_random_population(self):
@@ -25,7 +29,7 @@ class GeneticAlgorithm:
         return [Chromosome(self.chrom_length, self.possible_genes)
                 for _ in range(self.pop_size)]
 
-    def _perform_crossover(self, selected_chromosomes):
+    def perform_crossover(self, selected_chromosomes):
         """
         Perform crossover operations between multiple chromosomes.
         """
@@ -42,8 +46,7 @@ class GeneticAlgorithm:
         for i in range(start_index, len(selected_chromosomes), 2):
             offsprings.append(copy.deepcopy(selected_chromosomes[i]))
             offsprings.append(copy.deepcopy(selected_chromosomes[i+1]))
-            offsprings[i].do_single_point_crossover(offsprings[i+1])
-
+            offsprings[i].crossover(offsprings[i+1], self.operation_type)
         return selected_chromosomes + offsprings
 
     def _calc_cumsum(self, fitness_values):
@@ -92,7 +95,7 @@ class GeneticAlgorithm:
             selected_chromosomes.append(copy.deepcopy(self.population[index]))
         return selected_chromosomes
 
-    def _perform_mutation(self):
+    def perform_mutation(self):
         """
         Randomly changes the value of chromosomes.
         """
@@ -100,7 +103,7 @@ class GeneticAlgorithm:
 
         for chromosome, prob_mutations in zip(self.population, mutations):
             selected_genes = np.where(prob_mutations <= self.mutation_rate)[0]
-            chromosome.mutate_chromosome(selected_genes)
+            chromosome.mutate(selected_genes, self.operation_type)
 
     def run(self):
         self.population = self._generate_random_population()
@@ -109,8 +112,8 @@ class GeneticAlgorithm:
         for _ in range(self.n_generations):
             n_to_select = int(self.pop_size / 2)
             selected_chromosomes = self._do_roulette_selection(n_to_select)
-            self.population = self._perform_crossover(selected_chromosomes)
-            self._perform_mutation()
+            self.population = self.perform_crossover(selected_chromosomes)
+            self.perform_mutation()
             self.calc_population_fitness()
             fitness_vals = [chromosome.fitness_value
                             for chromosome in self.population]

@@ -1,0 +1,14 @@
+fitness: rastrigin
+ga:
+  mutation_rate: 0.02
+  n_generations: 15
+  pop_size: 10
+pso:
+  acc1: 1.49618
+  acc2: 1.49618
+  inertia: 0.7298
+  lbound: -100
+  maxiters: 500
+  particle_length: 50
+  swarm_size: 100
+  ubound: 100

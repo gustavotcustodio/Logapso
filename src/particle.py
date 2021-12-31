@@ -7,11 +7,11 @@ class Particle:
         self.particle_length = particle_length
         self.lbound = lbound
         self.ubound = ubound
-        self.position = self._generate_random_array()
+        self.position = self.generate_random_array()
         self.best_position = np.copy(self.position)
-        self.velocity = self._generate_random_array()
+        self.velocity = self.generate_random_array()
 
-    def _generate_random_array(self):
+    def generate_random_array(self):
         """Generates the particle starting positions and velocities
         ranging from lbound to ubound
 
