@@ -1,34 +1,19 @@
 import numpy as np
-from pso import Pso
-from genetic_algorithm_gapso import GeneticAlgorithmGapso
-from individual import Individual
-import functions
+from src.pso import Pso
+from src.genetic_algorithm_gapso import GeneticAlgorithmGapso
+from src.individual import Individual
+import src.checkpointmanager as chkpoint
+import src.functions as functions
 
 MUTATION_RATE = 0.2
 
 class GaPso(Pso):
 
-    """ Hybrid genetic algorithm and particle swarm optimization
-    proposed by Kao and Zahara (2008).
-
-    Attributes
-    ----------
-    swarm_size: int
-        Number of particles.
-    inertia: float
-        Inertia weight.
-    acc1, acc2: float
-        Accelerarion coefficients.
-    maxiters: int
-        Maximum number of iterations.
-    fitnessfunction: FitnessFunction
-        Function for evaluating particles.
-    """
     def __init__(self, swarm_size, inertia, acc1, acc2, maxiters,
-                 fitnessfunction):
+                 fitnessfunction, output_file):
 
         super().__init__(swarm_size, inertia, acc1, acc2, maxiters,
-                         fitnessfunction)
+                         fitnessfunction, output_file)
 
     def generate_particles(self, particle_length: int,
                            lbound: float, ubound: float):
@@ -77,12 +62,11 @@ class GaPso(Pso):
                 individual.best_fitness = individual.current_fitness
                 # Update the global solution if it is a better candidate
                 self.update_best_particle(individual)
-            print(self.best_particle.current_fitness)
 
-    def run(self):
+    def run(self, checkpoint_file: str):
         n_to_select = int(self.swarm_size / 2)
 
-        for i in range(100):
+        for i in range(self.maxiters):
             self._sort_individuals_by_fitness()
             best_individuals = [self.particles[i]
                                 for i in range(n_to_select)]
@@ -99,20 +83,9 @@ class GaPso(Pso):
             self._pso_step(worst_individuals)
             self.particles = best_individuals + worst_individuals
 
-
-def main():
-    pop_size = 100
-    length = 500
-    mutation_rate = 0.2
-    max_iters = 10000
-    fitnessfunction = functions.get_fitness_function('square_sum')
-    lbound = -1.0
-    ubound =  1.0
-
-    ga_pso = GaPso(pop_size, 0.1, 0.5, 0.5, max_iters, fitnessfunction)
-    ga_pso.generate_particles(length, lbound, ubound)
-    ga_pso.run()
-
-
-if __name__ == '__main__':
-    main()
+            chkpoint.save_checkpoint(self.particles, self.best_particle,
+                                     i, checkpoint_file)
+            self.outputstream.write('Iteration %d' % i)
+            self.outputstream.write(40 * '=')
+            self.outputstream.write('Best position: %s' % self.best_particle.best_position)
+            self.outputstream.write('Best fitness: %f\n' % self.best_particle.best_fitness)

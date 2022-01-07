@@ -1,5 +1,5 @@
-from chromosome import Chromosome
-from particle import Particle
+from src.chromosome import Chromosome
+from src.particle import Particle
 import numpy as np
 
 class Individual(Chromosome, Particle):

@@ -9,6 +9,7 @@ import src.datasetreader as reader
 import src.functions as functions
 from src.functions import FitnessFunction
 from src.pso import Pso
+from src.gapso import GaPso
 from src.logapso import Logapso
 from src.genetic_algorithm_logapso import GeneticAlgorithmLogapso
 
@@ -17,28 +18,35 @@ N_CPUS = 2
 CHECKPOINT_DIR = 'checkpoints'
 
 
-def create_logapso_optimizer(individual_length: int, params: dict,
-                             fitnessfunction: FitnessFunction) -> Logapso:
+def create_logapso_optimizer(individual_length: int, params: dict, fitnessfunc: FitnessFunction,
+                             output_file: str) -> Logapso:
     step_value = 1
     possible_genes = [-1, 0, 1]
 
     ga = GeneticAlgorithmLogapso(
         params['ga']['pop_size'], individual_length,
         params['ga']['mutation_rate'], params['ga']['n_generations'],
-        fitnessfunction, step_value, possible_genes)
+        fitnessfunc, step_value, possible_genes)
     logapso = Logapso(
         params['pso']['swarm_size'], params['pso']['inertia'],
         params['pso']['acc1'], params['pso']['acc2'],
-        params['pso']['maxiters'], step_value, fitnessfunction, ga)
+        params['pso']['maxiters'], step_value, fitnessfunc, ga, output_file)
     return logapso
 
 
-def create_pso_optimizer(params: dict, fitnessfunc: FitnessFunction) -> Pso:
+def create_pso_optimizer(params: dict, fitnessfunc: FitnessFunction, output_file: str) -> Pso:
     pso = Pso(
         params['pso']['swarm_size'], params['pso']['inertia'],
         params['pso']['acc1'], params['pso']['acc2'],
-        params['pso']['maxiters'], fitnessfunc)
+        params['pso']['maxiters'], fitnessfunc, output_file)
     return pso
+
+def create_gapso_optimizer(params: dict, fitnessfunc: FitnessFunction, output_file: str) -> GaPso:
+    gapso = GaPso(
+        params['pso']['swarm_size'], params['pso']['inertia'],
+        params['pso']['acc1'], params['pso']['acc2'],
+        params['pso']['maxiters'], fitnessfunc, output_file)
+    return gapso
 
 
 def run_optimizer(optimizer: Pso, individual_length: int, params: dict,
@@ -54,7 +62,7 @@ def run_optimizer(optimizer: Pso, individual_length: int, params: dict,
 
 
 def run_experiment(algorithm: str, paramsfile: str,
-                   start_from_checkpoint: bool):
+                   start_from_checkpoint: bool, current_run: int):
     # Load experiment parameters
     params = reader.read_param_file(paramsfile)
 
@@ -72,11 +80,16 @@ def run_experiment(algorithm: str, paramsfile: str,
         fitnessfunc = functions.get_fitness_function(params['fitness'])
         length = params['pso']['particle_length']
 
+    # File where the experiments output are saved.
+    output_file = f'{algorithm}_{paramsfile.replace(".yml", "")}_run{current_run}'
     if algorithm == 'logapso':
-        optimizer = create_logapso_optimizer(length, params, fitnessfunc)
+        optimizer = create_logapso_optimizer(length, params, fitnessfunc, output_file)
+
+    elif algorithm == 'gapso':
+        optimizer = create_gapso_optimizer(params, fitnessfunc, output_file)
 
     else:  # optimizer = 'pso'
-        optimizer = create_pso_optimizer(params, fitnessfunc)
+        optimizer = create_pso_optimizer(params, fitnessfunc, output_file)
 
     checkpoint_file = os.path.join(
         CHECKPOINT_DIR, f'chk_{algorithm}_{paramsfile}'
@@ -88,12 +101,15 @@ def run_experiment(algorithm: str, paramsfile: str,
 
 
 def run_algorithms(algorithms: list, paramsfiles: list,
-                   start_from_checkpoint: bool):
+                   start_from_checkpoint: bool, nruns=5):
 
     with multiprocessing.Pool(N_CPUS) as pool:
         pool.starmap(
             run_experiment,
-            [(algorithm, params, start_from_checkpoint)
-             for algorithm in algorithms for params in paramsfiles])
+            [(algorithm, params, r, start_from_checkpoint)
+             for params in paramsfiles
+             for algorithm in algorithms
+             for r in range(1, nruns+1)]
+        )
         pool.close()
         pool.join()

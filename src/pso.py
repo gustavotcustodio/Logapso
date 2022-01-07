@@ -4,6 +4,7 @@ import copy
 import src.functions as functions
 import src.checkpointmanager as chkpoint
 from src.particle import Particle
+from src.outputstream import OutputStream
 
 
 class Pso:
@@ -24,7 +25,7 @@ class Pso:
     """
 
     def __init__(self, swarm_size, inertia, acc1, acc2, maxiters,
-                 fitnessfunction):
+                 fitnessfunction, output_file):
         self.swarm_size = swarm_size
         self.maxiters = maxiters
 
@@ -36,6 +37,8 @@ class Pso:
         self.fitnessfunction = fitnessfunction
         self.particles = []
         self.first_iter = 0
+
+        self.outputstream = OutputStream(output_file)
 
     def generate_particles(self, particle_length, lbound, ubound):
 
@@ -101,10 +104,10 @@ class Pso:
 
             chkpoint.save_checkpoint(self.particles, self.best_particle,
                                      i, checkpoint_file)
-            print('Iteration %d' % i)
-            print(40 * '=')
-            print('Best position: %s' % self.best_particle.best_position)
-            print('Best fitness: %f\n' % self.best_particle.best_fitness)
+            self.outputstream.write('Iteration %d' % i)
+            self.outputstream.write(40 * '=')
+            self.outputstream.write('Best position: %s' % self.best_particle.best_position)
+            self.outputstream.write('Best fitness: %f\n' % self.best_particle.best_fitness)
 
 
 if __name__ == '__main__':

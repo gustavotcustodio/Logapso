@@ -9,7 +9,7 @@ import src.optimization as optim
 
 def process_paramfiles(paramfiles: str):
     # Check if the pattern is valid
-    valid = re.match(r'^[0-9]+(,\s*[0-9]+(-[0-9]+)?)*$', paramfiles)
+    valid = re.match(r'^[0-9]+(-[0-9]+)?(,\s*[0-9]+(-[0-9]+)?)*$', paramfiles)
     if not bool(valid):
         print('Invalid arguments.')
         sys.exit(2)
@@ -48,8 +48,8 @@ def main(argv):
     start_from_checkpoint = False
 
     try:
-        opts, _ = getopt.getopt(argv, "hp:a:c", [
-            "paramfiles=", "algorithms=", "checkpoint"])
+        opts, _ = getopt.getopt(
+            argv, "hp:a:c", ["paramfiles=", "algorithms=", "checkpoint"])
     except getopt.GetoptError:
         # Print debug info
         print('Invalid arguments.')
@@ -68,8 +68,7 @@ def main(argv):
             start_from_checkpoint = True
 
     if len(paramsfiles) > 0 and len(algorithms) > 0:
-        optim.run_algorithms(
-            algorithms, paramsfiles, start_from_checkpoint)
+        optim.run_algorithms(algorithms, paramsfiles, start_from_checkpoint)
     else:
         print('Invalida arguments.')
         sys.exit(2)

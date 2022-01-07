@@ -45,22 +45,48 @@ def silhouette(inputs, precomput_dists):
     return wrapper
 
 
-def xie_beni(inputs, labels):
+def fuku_sugeno(inputs: np.ndarray):
     n = inputs.shape[0]  # number of inputs
     m = inputs.shape[1]  # number of attributes
 
     def wrapper(particle):
-        d = int(particle.shape[0]/m)  # number of clusters
-        clusters = np.reshape(particle, (d, m))  # fit each cluster in a row
+        if np.max(particle) == np.min(particle):
+            return float('inf')  # If all clusters are the same
+
+        d = int(particle.shape[0]/m) # number of clusters
+        clusters = np.reshape(particle, (d, m))
         distances = distance_matrix(inputs, clusters)
+        distances = np.where(distances!=0, distances, 10**(-100))
         # Shape of distance matrix:(n x d)
         u = distances**2 / np.sum(distances**2, axis=1)[:, np.newaxis]
         u = 1.0 / u
         u = (u.T / np.sum(u, axis=1)).T
+
+        dists_mean_cluster = distance_matrix(
+            np.mean(clusters, axis=0)[np.newaxis,:], clusters
+        )
+        return np.sum(u**2 * (distances**2-dists_mean_cluster**2))
+    return wrapper
+
+
+def xie_beni(inputs: np.ndarray):
+    n = inputs.shape[0]  # number of inputs
+    m = inputs.shape[1]  # number of attributes
+
+    def wrapper(particle):
+        if np.max(particle) == np.min(particle):
+            return float('inf')  # If all clusters are the same
+
+        d = int(particle.shape[0]/m)  # number of clusters
+        clusters = np.reshape(particle, (d, m))  # fit each cluster in a row
+        # Check if all clusters are equal
+        distances = distance_matrix(inputs, clusters)
+        # Shape of distance matrix: (n x d)
+        u = distances**2 / np.sum(distances**2, axis=1)[:, np.newaxis]
+        u = 1.0 / u
+        u = (u.T / np.sum(u, axis=1)).T
         num = np.sum(u**2 * distances**2)
-        # print(clusters)
         den = n * min(distance.pdist(clusters))**2
-        # print(den)
         return num / den
     return wrapper
 
@@ -102,7 +128,11 @@ def get_fitness_function(function_name, data=None):
             return FitnessFunction(function, maximization=True)
 
         elif function_name == 'xie_beni':
-            function = xie_beni(features, labels)
+            function = xie_beni(features)
+            return FitnessFunction(function, maximization=False)
+
+        elif function_name == 'fuku_sugeno':
+            function = fuku_sugeno(features)
             return FitnessFunction(function, maximization=False)
 
     elif function_name == 'griewank':

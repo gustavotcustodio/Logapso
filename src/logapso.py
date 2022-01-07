@@ -11,10 +11,10 @@ import src.functions as functions
 class Logapso(Pso):
 
     def __init__(self, swarm_size, inertia, acc1, acc2, maxiters, step_val,
-                 fitnessfunction, ga):
+                 fitnessfunction, ga, output_file):
 
         super().__init__(swarm_size, inertia, acc1, acc2, maxiters,
-                         fitnessfunction)
+                         fitnessfunction, output_file)
         self.step_val = step_val
         self.ga = ga
         self.updated_global_solution = True
@@ -80,10 +80,10 @@ class Logapso(Pso):
 
             chkpoint.save_checkpoint(self.particles, self.best_particle,
                                      i, checkpoint_file)
-            print('Iteration %d' % i)
-            print(40 * '=')
-            print('Best position: %s' % self.best_particle.best_position)
-            print('Best fitness: %f\n' % self.best_particle.best_fitness)
+            self.outputstream.write('Iteration %d' % i)
+            self.outputstream.write(40 * '=')
+            self.outputstream.write('Best position: %s' % self.best_particle.best_position)
+            self.outputstream.write('Best fitness: %f\n' % self.best_particle.best_fitness)
 
 
 if __name__ == '__main__':
