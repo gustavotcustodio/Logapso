@@ -1,4 +1,5 @@
 import math
+import sys
 import random
 import numpy as np
 from scipy.spatial import distance
@@ -51,22 +52,23 @@ def fuku_sugeno(inputs: np.ndarray):
     m = inputs.shape[1]  # number of attributes
 
     def wrapper(particle):
-        if np.max(particle) == np.min(particle):
-            return float('inf')  # If all clusters are the same
-
         d = int(particle.shape[0]/m) # number of clusters
         clusters = np.reshape(particle, (d, m))
-        distances = distance_matrix(inputs, clusters)
-        distances = np.where(distances!=0, distances, 10**(-100))
+        intra_clusters_dists = distance.pdist(clusters)
+        if 0 in intra_clusters_dists:
+            return sys.maxint  # If clusters are the same
+
+        inputs_clusters_dists = distance_matrix(inputs, clusters)
+        inputs_clusters_dists = np.where(inputs_clusters_dists!=0, inputs_clusters_dists, 10**(-100))
         # Shape of distance matrix:(n x d)
-        u = distances**2 / np.sum(distances**2, axis=1)[:, np.newaxis]
+        u = inputs_clusters_dists**2 / np.sum(inputs_clusters_dists**2, axis=1)[:, np.newaxis]
         u = 1.0 / u
         u = (u.T / np.sum(u, axis=1)).T
 
         dists_grandmean = distance_matrix(
             np.mean(inputs, axis=0)[np.newaxis,:], clusters
         )
-        return np.sum(u**2 * (distances**2 - dists_grandmean**2))
+        return np.sum(u**2 * (inputs_clusters_dists**2 - dists_grandmean**2))
     return wrapper
 
 
@@ -75,19 +77,21 @@ def xie_beni(inputs: np.ndarray):
     m = inputs.shape[1]  # number of attributes
 
     def wrapper(particle):
-        if np.max(particle) == np.min(particle):
-            return float('inf')  # If all clusters are the same
-
         d = int(particle.shape[0]/m)  # number of clusters
         clusters = np.reshape(particle, (d, m))  # fit each cluster in a row
+        intra_clusters_dists = distance.pdist(clusters)
+        if 0 in intra_clusters_dists:
+            return sys.maxint  # If clusters are the same
+
         # Check if all clusters are equal
-        distances = distance_matrix(inputs, clusters)
+        inputs_clusters_dists = distance_matrix(inputs, clusters)
+        inputs_clusters_dists = np.where(inputs_clusters_dists!=0, inputs_clusters_dists, 10**(-100))
         # Shape of distance matrix: (n x d)
-        u = distances**2 / np.sum(distances**2, axis=1)[:, np.newaxis]
+        u = inputs_clusters_dists**2 / np.sum(inputs_clusters_dists**2, axis=1)[:, np.newaxis]
         u = 1.0 / u
         u = (u.T / np.sum(u, axis=1)).T
-        num = np.sum(u**2 * distances**2)
-        den = n * min(distance.pdist(clusters))**2
+        num = np.sum(u**2 * inputs_clusters_dists**2)
+        den = n * min(intra_clusters_dists)**2
         return num / den
     return wrapper
 

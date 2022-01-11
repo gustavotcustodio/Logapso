@@ -14,7 +14,7 @@ from src.logapso import Logapso
 from src.genetic_algorithm_logapso import GeneticAlgorithmLogapso
 
 
-N_CPUS = 1
+N_CPUS = 4
 CHECKPOINT_DIR = 'checkpoints'
 
 
@@ -112,9 +112,9 @@ def run_algorithms(algorithms: list, paramsfiles: list,
         )
         pool.close()
         pool.join()
-    '''
+        '''
     algorithm = list(algorithms)[0]
     params = paramsfiles[0]
     for r in range(1, nruns+1):
         run_experiment(algorithm, params, start_from_checkpoint, r)
-    '''
+        '''
