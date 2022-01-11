@@ -5,7 +5,7 @@ class OutputStream():
         self.file = open(os.path.join('data', 'experiments_results', output_file), 'w')
 
     def write(self, content: str):
-        # self.file.write(f'{content}\n')
+        self.file.write(f'{content}\n')
         print(content)
 
     def close(self):

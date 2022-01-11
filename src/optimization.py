@@ -14,7 +14,7 @@ from src.logapso import Logapso
 from src.genetic_algorithm_logapso import GeneticAlgorithmLogapso
 
 
-N_CPUS = 2
+N_CPUS = 1
 CHECKPOINT_DIR = 'checkpoints'
 
 
@@ -101,15 +101,20 @@ def run_experiment(algorithm: str, paramsfile: str,
 
 
 def run_algorithms(algorithms: list, paramsfiles: list,
-                   start_from_checkpoint: bool, nruns=5):
-
+                   start_from_checkpoint: bool, nruns):
     with multiprocessing.Pool(N_CPUS) as pool:
         pool.starmap(
             run_experiment,
-            [(algorithm, params, r, start_from_checkpoint)
+            [(algorithm, params, start_from_checkpoint, r)
              for params in paramsfiles
              for algorithm in algorithms
              for r in range(1, nruns+1)]
         )
         pool.close()
         pool.join()
+    '''
+    algorithm = list(algorithms)[0]
+    params = paramsfiles[0]
+    for r in range(1, nruns+1):
+        run_experiment(algorithm, params, start_from_checkpoint, r)
+    '''

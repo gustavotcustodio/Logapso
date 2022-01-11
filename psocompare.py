@@ -7,6 +7,9 @@ import time
 import src.optimization as optim
 
 
+N_RUNS = 4
+
+
 def process_paramfiles(paramfiles: str):
     # Check if the pattern is valid
     valid = re.match(r'^[0-9]+(-[0-9]+)?(,\s*[0-9]+(-[0-9]+)?)*$', paramfiles)
@@ -68,7 +71,7 @@ def main(argv):
             start_from_checkpoint = True
 
     if len(paramsfiles) > 0 and len(algorithms) > 0:
-        optim.run_algorithms(algorithms, paramsfiles, start_from_checkpoint)
+        optim.run_algorithms(algorithms, paramsfiles, start_from_checkpoint, N_RUNS)
     else:
         print('Invalida arguments.')
         sys.exit(2)
