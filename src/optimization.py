@@ -102,6 +102,7 @@ def run_experiment(algorithm: str, paramsfile: str,
 
 def run_algorithms(algorithms: list, paramsfiles: list,
                    start_from_checkpoint: bool, nruns):
+    '''
     with multiprocessing.Pool(N_CPUS) as pool:
         pool.starmap(
             run_experiment,
@@ -117,4 +118,3 @@ def run_algorithms(algorithms: list, paramsfiles: list,
     params = paramsfiles[0]
     for r in range(1, nruns+1):
         run_experiment(algorithm, params, start_from_checkpoint, r)
-        '''

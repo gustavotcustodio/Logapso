@@ -56,7 +56,7 @@ def fuku_sugeno(inputs: np.ndarray):
         clusters = np.reshape(particle, (d, m))
         intra_clusters_dists = distance.pdist(clusters)
         if 0 in intra_clusters_dists:
-            return sys.maxint  # If clusters are the same
+            return sys.maxsize  # If clusters are the same
 
         inputs_clusters_dists = distance_matrix(inputs, clusters)
         inputs_clusters_dists = np.where(inputs_clusters_dists!=0, inputs_clusters_dists, 10**(-100))
@@ -81,7 +81,7 @@ def xie_beni(inputs: np.ndarray):
         clusters = np.reshape(particle, (d, m))  # fit each cluster in a row
         intra_clusters_dists = distance.pdist(clusters)
         if 0 in intra_clusters_dists:
-            return sys.maxint  # If clusters are the same
+            return sys.maxsize  # If clusters are the same
 
         # Check if all clusters are equal
         inputs_clusters_dists = distance_matrix(inputs, clusters)
