@@ -206,6 +206,9 @@ def get_fitness_function(function_name: str, data=None):
     elif function_name == 'quartic_noise':
         return FitnessFunction(quartic_noise, maximization=False)
 
+    elif function_name == 'rosenbrock':
+        return FitnessFunction(rosenbrock, maximization=False)
+
     elif function_name == 'rastrigin':
         return FitnessFunction(rastrigin, maximization=False)
 
