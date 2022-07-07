@@ -1,0 +1,21 @@
+#!/bin/sh
+
+merged_table=./data/experiments_results/tables/merged_table.tex
+
+echo -e "\documentclass{article}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{subcaption}
+
+\\\begin{document}
+" > $merged_table
+
+
+for filename in ./data/experiments_results/tables/*.tex; do
+    if  [[ "$filename" != "$merged_table" ]];then
+        cat "${filename}" >> $merged_table
+        echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" >> $merged_table
+    fi
+done
+
+echo -e "\\\end{document}" >> $merged_table

@@ -1,8 +1,4 @@
 import os
-import sys
-import yaml
-import numpy as np
-import getopt
 import multiprocessing
 import src.checkpointmanager as chkpoint
 import src.datasetreader as reader

@@ -1,9 +1,6 @@
-import os
 import sys
 import re
 import getopt
-import threading
-import time
 import src.optimization as optim
 
 
@@ -71,9 +68,10 @@ def main(argv):
             start_from_checkpoint = True
 
     if len(paramsfiles) > 0 and len(algorithms) > 0:
-        optim.run_algorithms(algorithms, paramsfiles, start_from_checkpoint, N_RUNS)
+        optim.run_algorithms(list(algorithms), paramsfiles,
+                             start_from_checkpoint, N_RUNS)
     else:
-        print('Invalida arguments.')
+        print('Invalid arguments.')
         sys.exit(2)
 
 

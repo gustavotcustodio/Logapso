@@ -180,9 +180,9 @@ def penalty_2(x):
     return term1 + term2 + term3 + term4
 
 
-def get_fitness_function(function_name: str, data=None):
+def get_fitness_function(function_name: str, data=None) -> FitnessFunction:
     if data is not None:
-        features, labels = data[:, :-1], data[:, -1]
+        features, _ = data[:, :-1], data[:, -1]
 
         if function_name == 'silhouette':
             precomput_dists = distance_matrix(features, features)
@@ -226,3 +226,6 @@ def get_fitness_function(function_name: str, data=None):
 
     elif function_name == 'penalty_2':
         return FitnessFunction(penalty_2, maximization=False)
+
+    return FitnessFunction(square_sum, maximization=False)
+
