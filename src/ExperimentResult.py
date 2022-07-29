@@ -25,7 +25,8 @@ class ExperimentResult:
     def get_experiment_info(self):
         if 'dataset' in self.experiment_info:
             self.experiment_info['dataset'] = self.experiment_info['dataset'].split('.')[0]
-            return '%s %s nclusters: %d' % (self.experiment_info['fitness'], self.experiment_info['dataset'], self.experiment_info['n_clusters'])
+            return '%s %s nclusters: %d' % (self.experiment_info['fitness'], self.experiment_info['dataset'],
+                                            self.experiment_info['n_clusters'])
         else:
             return self.experiment_info['fitness']
 
@@ -72,57 +73,3 @@ class ExperimentResult:
         plt.close()
         print('Plot successful.')
 
-def format_table_results():
-    return
-
-
-def create_table(experiments: list, filename: str):
-    table_experiment = []
-    i = 0
-
-    for experiment in experiments:
-        # The current algorithm result being added to the table
-        curr_alg = ALGORITHMS[i % len(ALGORITHMS)]
-
-        experiment_info = {}
-        experiment_info.update(experiment.experiment_info)
-        del experiment_info['ga']
-        del experiment_info['pso']
-        experiment_info.update(experiment.experiment_info['ga'])
-        experiment_info.update(experiment.experiment_info['pso'])
-        experiment_info.update({"Algorithm": curr_alg, "Fitness": experiment.results[curr_alg].avg_best})
-        table_experiment.append(experiment_info)
-        i += 1
-
-    df_latex = pd.DataFrame(table_experiment)
-    df_latex.to_latex(filename+'.tex', index=False, multirow=True, multicolumn=True,
-                escape=False, caption="zzzzzzzzzzzzzzzz")
-
-
-def add_to_result_dict(result, result_dict):
-    if 'dataset' in result.experiment_info:
-        dataset = result.experiment_info['dataset'].split('.')[0]
-        fitnessfunc = result.experiment_info['fitness'] + dataset
-    else:
-        fitnessfunc = result.experiment_info['fitness']
-
-    if fitnessfunc not in result_dict:
-        result_dict[fitnessfunc] = []
-    result_dict[fitnessfunc].append(result)
-
-
-if __name__ == '__main__':
-    result_dict = {}
-
-    for i in range(1, 226):
-        try:
-            er = ExperimentResult(f'params{i}', 4)
-            er.read_experiment_info()
-            er.calc_average_fitness_progression()
-
-        except:
-            pass
-
-    # for k in result_dict.keys():
-    #     fullfilename = os.path.join(TABLES_FOLDER, f'params{k}')
-    #     create_table(result_dict[k], fullfilename)

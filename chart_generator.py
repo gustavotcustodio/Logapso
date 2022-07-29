@@ -1,104 +1,65 @@
 import os
-import numpy as np
-import yaml
+import json
 import matplotlib.pyplot as plt
+import seaborn as sns
+from src.ExperimentResult import ExperimentResult
+
+N_RUNS = 4
+ALGORITHMS = ['pso', 'gapso', 'logapso']
+CHARTS_FOLDER = 'data/experiments_results/charts'
+COLORS = {
+    'pso': 'blue',
+    'gapso': 'green',
+    'logapso': 'red',
+  }
+N_EXPERIMENTS = 225
 
 
-def read_fitness_progression(filename):
-    fitness_vals_run = []
-    with open(filename, 'r') as current_file:
-        line = current_file.readline()
-        iteration = 0
-
-        while(line):
-            if 'Best fitness' in line:
-                fitness = float(line.split(": ")[1])
-                fitness_vals_run.append(fitness)
-
-                iteration += 1
-            line = current_file.readline()
-    return fitness_vals_run
-
-
-def read_experiment_info(filename):
-    fullfilename = os.path.join('paramsfiles', filename+'.yml')
-    with open(fullfilename, 'r') as current_file:
-        experiment_info = yaml.safe_load(current_file)
-
-    if 'dataset' in experiment_info:
-        dataset = experiment_info['dataset'].split('.')[0]
-        n_clusters = experiment_info['n_clusters']
-        return '%s %s nclusters: %d' % (experiment_info['fitness'], dataset, n_clusters)
+def get_filename(info: dict, id_exp: int) -> str:
+    paramname = 'params%d' % id_exp
+    if 'dataset' in info:
+        return '%s_%s_%d_%s.jpg' % (info['dataset'].split('.')[0], info['fitness'],
+                                    info['n_clusters'], paramname)
     else:
-        return experiment_info['fitness']
+        return '%s_%s.jpg' % (info['fitness'], paramname)
 
 
-def plot_chart(data, filename):
-    chart_directory = 'data/experiments_results/charts'
-
+def plot_chart(data: dict, fullfilename: str, n_iter = 500) -> None:
+    sns.set_theme(style="darkgrid")
+    sns.set(rc={'axes.facecolor':'lightblue',
+                'figure.facecolor':'lightgrey'})
     plt.figure()
-    # fig, ax = plt.subplots()
-    algorithms = list(data.keys())
-    for algorithm in algorithms:
-        # plt.xlabel('Time(ms)')
-        plt.plot([i for i in range(data[algorithm].shape[0])], data[algorithm])
-    plt.ylabel('fitness')
-    plt.title(read_experiment_info(filename))
-    plt.legend(algorithms)
-    plt.savefig(os.path.join(chart_directory, f'{filename}.jpg'))
+
+    for algorithm in ALGORITHMS:
+        p = sns.lineplot(data=data[algorithm][:n_iter], color=COLORS[algorithm])
+        p.set_xlabel("Iteration", fontsize = 10)
+        p.set_ylabel("Fitness", fontsize = 10)
+
+    plt.tight_layout()
+    plt.legend(ALGORITHMS)
+    plt.savefig(os.path.join(CHARTS_FOLDER, fullfilename), dpi=380)
     plt.close()
-
-
-def fix_filenames(filename):
-    return '_'.join(filename.split('_')[1:])
-
-
-def filter_mismatched_files(filename, filelist):
-
-    if f'pso_{filename}' in filelist and \
-            f'logapso_{filename}' in filelist:
-        return True
-    else:
-        return False
+    print('%s salvo com sucesso.' % fullfilename)
 
 
 def main():
-    total_runs = 4
-    # algorithms = ['pso', 'logapso']
-    experiments_folder = 'data/experiments_results'
+    file_n_iters = open('iters.json')
+    iters = json.load(file_n_iters)
+    file_n_iters.close()
 
-    data_to_plot = {}
+    for i in range(1, N_EXPERIMENTS+1):
+        try:
+            experiment = ExperimentResult(f'params{i}', N_RUNS)
+            experiment.read_experiment_info()
+            experiment.calc_average_fitness_progression()
 
-    fitness_vals_paramset = []  # Fitness values for parameter set
-
-    filelist_folder = sorted(os.listdir(experiments_folder))
-    filelist = map(fix_filenames, filelist_folder)
-    filelist = filter(lambda f: filter_mismatched_files(f, filelist_folder), filelist)
-    filelist = list(dict.fromkeys(filelist))
-
-    for current_filename in filelist:
-        print(current_filename)
-        # Current parameters set
-        current_param = current_filename.split('_')[0]
-        data_to_plot[current_param] = {}
-
-        # Current run for the parameters set
-        current_run = int(current_filename.split('_')[-1].replace('run', ''))
-
-        for algorithm in ['pso', 'logapso', 'gapso']:
-            full_filename = os.path.join(experiments_folder ,
-                                         '%s_%s_run%d' % (algorithm, current_param, current_run))
-            fitness_values = read_fitness_progression(full_filename)
-
-            fitness_vals_paramset.append(fitness_values)
-
-            if current_run == total_runs:
-
-                data_to_plot[current_param][algorithm] = np.array(np.mean(fitness_vals_paramset, axis=0))
-                fitness_vals_paramset = []  # Reset the fitness values for the next paramset
-
-        if current_run == total_runs:
-            plot_chart(data_to_plot[current_param], current_param)
+            data = {}
+            for algorithm in ALGORITHMS:
+                data[algorithm] = experiment.results[algorithm].avg
+            fullfilename = get_filename(experiment.experiment_info, i)
+            plot_chart(data, fullfilename, n_iter=iters[str(i)])
+        except Exception as e:
+            print("Error %s" % e)
 
 
 if __name__ == '__main__':

@@ -55,6 +55,9 @@ def format_results_table(experiment: ExperimentResult) -> dict:
     formatted_results['w'] = create_multirow(
         exp_info['pso']['inertia'], len(ALGORITHMS)
     )
+    formatted_results['Mutation rate'] = create_multirow(
+        exp_info['ga']['mutation_rate'], len(ALGORITHMS)
+    )
     return formatted_results
 
 
@@ -72,12 +75,15 @@ def main():
             if 'dataset' in experiment.experiment_info:
                 dataset = experiment.experiment_info['dataset'].replace('.data', '')
                 experiment_name = "%s_%s" % (dataset, experiment_name)
+                caption_table = "Results of experiments using the %s dataset" % dataset
+            else:
+                caption_table = "Results of experiments with benchmark functions"
 
             filename = os.path.join(TABLES_FOLDER, f'{experiment_name}.tex')
 
             df_latex = pd.DataFrame(format_results_table(experiment))
             df_latex.to_latex(filename, index=False, multirow=True, multicolumn=True,
-                              escape=False, caption="Results of experiments")
+                              escape=False, caption=caption_table)
             print("%s has been successfully saved." % experiment_name)
         except Exception as e:
             print("Erro: %s" % e)
