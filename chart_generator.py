@@ -11,7 +11,7 @@ COLORS = {
     'pso': 'blue',
     'gapso': 'green',
     'logapso': 'red',
-  }
+}
 N_EXPERIMENTS = 225
 
 

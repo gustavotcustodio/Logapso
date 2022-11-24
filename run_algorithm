@@ -1,0 +1,2 @@
+#!/bin/sh
+python psocompare.py -p 115,118 -a pso,gapso,logapso

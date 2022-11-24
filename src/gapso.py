@@ -30,8 +30,12 @@ class GaPso(Pso):
         self.best_particle = self.find_best_particle()
 
     def _sort_individuals_by_fitness(self):
-        self.particles = sorted(self.particles,
-                                key=lambda p: p.current_fitness)
+        if self.fitnessfunction.maximization:
+            self.particles = sorted(self.particles,
+                                    key=lambda p: p.current_fitness, reverse=True)
+        else:
+            self.particles = sorted(self.particles,
+                                    key=lambda p: p.current_fitness)
 
     def _create_ga(self, selected_pop: list[Individual], chrom_length: int,
                    mutation_rate: float) -> GeneticAlgorithmGapso:

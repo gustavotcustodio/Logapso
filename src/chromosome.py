@@ -33,7 +33,9 @@ class Chromosome:
     def _normal_mutation(self, genes):
         # random normal distribution number
         r = random.gauss(mu=0, sigma=1)
-        return genes + r
+        pos = random.randint(0, len(genes) - 1)
+        genes[pos] = genes[pos] + r
+        return genes
 
     def _bit_string_mutation(self, genes):
         for val_to_change in self.possible_genes:
