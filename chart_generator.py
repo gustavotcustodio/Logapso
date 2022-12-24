@@ -49,7 +49,7 @@ def main():
     iters = json.load(file_n_iters)
     file_n_iters.close()
 
-    for i in [142, 190]:# range(N_EXPERIMENTS, N_EXPERIMENTS+1):
+    for i in range(1, N_EXPERIMENTS+1):
         try:
             experiment = ExperimentResult(f'params{i}', N_RUNS)
             experiment.read_experiment_info()
