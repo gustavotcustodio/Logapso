@@ -67,7 +67,8 @@ class GeneticAlgorithm:
     def calc_population_fitness(self):
         for chromosome in self.population:
             fitness_value = self.fitnessfunction.calc_fitness(chromosome.genes)
-            chromosome.fitness_value = fitness_value
+            # chromosome.fitness_value = fitness_value
+            chromosome.current_fitness = fitness_value
 
     def _do_roulette_selection(self, n_to_select):
         """
@@ -84,7 +85,7 @@ class GeneticAlgorithm:
             'n_to_select' selected chromosomes for crossover.
         """
         selected_chromosomes = []
-        fitness_values = np.array([chromosome.fitness_value
+        fitness_values = np.array([chromosome.current_fitness  # fitness_value
                                    for chromosome in self.population])
         fitness_cumsum = self._calc_cumsum(fitness_values)
 
@@ -99,6 +100,26 @@ class GeneticAlgorithm:
         """
         Randomly changes the value of chromosomes.
         """
+        '''
+        if self.operation_type == 'bitstring':
+            mutations = np.random.uniform(0, 1, (self.pop_size, self.chrom_length))
+
+            for chromosome, prob_mutations in zip(self.population, mutations):
+                selected_genes = np.where(prob_mutations <= self.mutation_rate)[0]
+                chromosome.mutate(selected_genes, self.operation_type)
+        else:
+            random_chroms = np.random.uniform(0, 1, self.pop_size)
+
+            selected_chromosomes = np.where(random_chroms <= self.mutation_rate)[0]
+
+            selected_genes = np.random.randint(0, self.chrom_length, selected_chromosomes.shape[0])
+
+            mutations = np.dstack((selected_chromosomes, selected_genes))[0]
+
+            for chrom_position, gene_position in mutations:
+                chromosome = self.population[chrom_position]
+                chromosome.mutate(gene_position, self.operation_type)
+        '''
         mutations = np.random.uniform(0, 1, (self.pop_size, self.chrom_length))
 
         for chromosome, prob_mutations in zip(self.population, mutations):
@@ -115,7 +136,7 @@ class GeneticAlgorithm:
             self.population = self.perform_crossover(selected_chromosomes)
             self.perform_mutation()
             self.calc_population_fitness()
-            fitness_vals = [chromosome.fitness_value
+            fitness_vals = [chromosome.current_fitness  # fitness_value
                             for chromosome in self.population]
             index_best = self.fitnessfunction.get_index_best(fitness_vals)
         return self.population[index_best]

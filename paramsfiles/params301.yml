@@ -1,0 +1,14 @@
+fitness: rosenbrock
+ga:
+  mutation_rate: 0.2
+  n_generations: 15
+  pop_size: 500
+pso:
+  acc1: 2
+  acc2: 2
+  inertia: 0.7298
+  lbound: -5
+  maxiters: 500
+  particle_length: 10
+  swarm_size: 500
+  ubound: 10

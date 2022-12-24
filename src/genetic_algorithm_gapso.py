@@ -1,4 +1,5 @@
 import random
+import copy
 import numpy as np
 import src.functions as functions
 from src.genetic_algorithm import GeneticAlgorithm
@@ -23,21 +24,22 @@ class GeneticAlgorithmGapso(GeneticAlgorithm):
         """
         Perform crossover operations between multiple individuals.
         """
+        copy_first = copy.deepcopy(self.population[0])
         for i in range(0, len(self.population)-1):
             self.population[i].crossover(
                 self.population[i+1], self.operation_type
             )
         self.population[-1].crossover(
-            self.population[0], self.operation_type
+            copy_first, self.operation_type
         )
 
-    def perform_mutation(self):
-        """
-        Randomly changes the value of individuals.
-        """
-        for individual in self.population:
-            if random.random() < self.mutation_rate:
-                individual.mutate(individual.genes, self.operation_type)
+    # def perform_mutation(self):
+    #     """
+    #     Randomly changes the value of individuals.
+    #     """
+    #     for individual in self.population:
+    #         if random.random() < self.mutation_rate:
+    #             individual.mutate(individual.genes, self.operation_type)
 
     def run(self):
         self.perform_crossover()

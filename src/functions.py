@@ -68,6 +68,7 @@ def fuku_sugeno(inputs: np.ndarray):
         dists_grandmean = distance_matrix(
             np.mean(inputs, axis=0)[np.newaxis,:], clusters
         )
+
         return np.sum(u**2 * (inputs_clusters_dists**2 - dists_grandmean**2))
     return wrapper
 

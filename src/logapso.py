@@ -25,7 +25,8 @@ class Logapso(Pso):
 
         new_position = ga_solution.genes * self.step_val + \
             particle.best_position
-        new_fitness = ga_solution.fitness_value
+        # new_fitness = ga_solution.fitness_value
+        new_fitness = ga_solution.current_fitness
 
         # Update if the solution is improved after running a GA
         if self.fitnessfunction.is_fitness_improved(new_fitness,

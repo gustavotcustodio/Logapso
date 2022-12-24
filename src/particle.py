@@ -33,8 +33,8 @@ class Particle:
 
         # under_lbound = np.where(self.velocity < self.lbound)[0]
         # over_ubound = np.where(self.velocity > self.ubound)[0]
-        # self.velocity[under_lbound] = self.lbound
-        # self.velocity[over_ubound] = self.ubound
+        # self.velocity[under_lbound] = 0
+        # self.velocity[over_ubound] = 0
 
     def update_position(self):
         self.position += self.velocity
@@ -44,3 +44,8 @@ class Particle:
         self.position[over_ubound] = self.ubound
         self.velocity[under_lbound] = 0.0
         self.velocity[over_ubound] = 0.0
+
+    def update_velocity_by_positions(self, new_position):
+        self.velocity = new_position - self.position
+        # self.velocity[under_lbound] = self.lbound
+        # self.velocity[over_ubound] = self.ubound

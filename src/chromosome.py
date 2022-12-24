@@ -15,7 +15,7 @@ class Chromosome:
     def _single_point_crossover(self, chromosome):
         crossover_point = random.randint(1, self.chrom_length-1)
 
-        tmp = self.genes[:crossover_point]
+        tmp = np.copy(self.genes[:crossover_point])
         self.genes[:crossover_point] = chromosome.genes[:crossover_point]
         chromosome.genes[:crossover_point] = tmp
 
@@ -25,6 +25,7 @@ class Chromosome:
 
     def crossover(self, chromosome, operation_type='bitstring'):
         if self.chrom_length > 1:
+
             if operation_type == 'bitstring':
                 self._single_point_crossover(chromosome)
             else:
@@ -33,8 +34,13 @@ class Chromosome:
     def _normal_mutation(self, genes):
         # random normal distribution number
         r = random.gauss(mu=0, sigma=1)
-        pos = random.randint(0, len(genes) - 1)
-        genes[pos] = genes[pos] + r
+        if len(genes.shape) > 1:
+            pos = random.randint(0, genes.shape[1]-1)
+            genes[:, pos] = genes[:, pos] + r
+        # elif genes.shape[0] > 0:
+        else:
+            pos = random.randint(0, genes.shape[0]-1)
+            genes[pos] = genes[pos] + r
         return genes
 
     def _bit_string_mutation(self, genes):
@@ -48,13 +54,14 @@ class Chromosome:
         return genes
 
     def mutate(self, indexes, operation_type='bitstring'):
-        if indexes.shape[0] > 0:
-            if operation_type == 'bitstring':
-                genes = self._bit_string_mutation(self.genes[indexes])
-                self.genes[indexes] = genes
-            else:
-                self.genes = self._normal_mutation(self.genes[:])
+        if indexes.shape[0] < 1:
+            return
 
+        if operation_type == 'bitstring':
+            genes = self._bit_string_mutation(self.genes[indexes])
+            self.genes[indexes] = genes
+        else:
+            self.genes[indexes] = self._normal_mutation(self.genes[indexes])
 
 
 if __name__ == '__main__':
@@ -62,7 +69,6 @@ if __name__ == '__main__':
     genes = np.array([0, 1, 1, 0, 0, 1, 0, 0, 1, 1])
     indexes = [0, 2, 4, 6, 8]
     mutated_genes = genes[indexes]
-    print(genes)
 
     for val_to_change in possible_genes:
         new_values = possible_genes.copy()
